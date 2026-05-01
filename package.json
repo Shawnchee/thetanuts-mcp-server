@@ -1,0 +1,51 @@
+{
+  "name": "@shawnchee/thetanuts-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP Server for Thetanuts SDK - Read-only queries and transaction encoding (community build)",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "thetanuts-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "thetanuts",
+    "mcp",
+    "model-context-protocol",
+    "options",
+    "defi",
+    "claude"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shawnchee/thetanuts-mcp-server.git"
+  },
+  "license": "MIT",
+  "author": "shawnchee <shawnchee03@gmail.com>",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@thetanuts-finance/thetanuts-client": "^0.1.6",
+    "ethers": "^6.13.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
