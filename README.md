@@ -6,7 +6,7 @@
 [![Thetanuts SDK](https://img.shields.io/npm/v/@thetanuts-finance/thetanuts-client.svg?style=flat-square&label=SDK)](https://www.npmjs.com/package/@thetanuts-finance/thetanuts-client)
 [![GitHub](https://img.shields.io/badge/source-GitHub-181717?style=flat-square&logo=github)](https://github.com/Shawnchee/thetanuts-mcp-server)
 
-A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK to Claude Desktop, Claude Code, Cursor, Antigravity, and any other MCP-compatible client.
+A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK to Claude Code, Cursor, Antigravity, and any other MCP-compatible client.
 
 > ⚠️ **Don't `npm i` this.** The sidebar's `npm i @thetanuts-finance/mcp-server` snippet is misleading — this package is meant to be **spawned by your MCP client via `npx`**, not imported as a library. Use one of the install paths below. (Why? See [Install methods compared](#install-methods-compared) at the bottom.)
 
@@ -14,12 +14,12 @@ A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK t
 
 [![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white)](cursor://anysphere.cursor-deeplink/mcp/install?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19)
 [![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](vscode:mcp/install?%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40thetanuts-finance%2Fmcp-server%22%5D%7D)
-![Add to Claude Code](https://img.shields.io/badge/Add_to-Claude_Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
-![Add to Claude Desktop](https://img.shields.io/badge/Add_to-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
-![Add to Antigravity](https://img.shields.io/badge/Add_to-Antigravity-4285F4?style=for-the-badge&logo=google&logoColor=white)
 
-**Cursor** and **VS Code** install with one click via the badges above. The other clients need a single command or JSON paste — expand the rows below.
+**Cursor** and **VS Code** are the only clients with one-click install URL schemes — click a badge to open the IDE and confirm. Other clients (Claude Code, Antigravity) need a single command or JSON paste — see below.
 
+> Heads-up: on **npmjs.com**, custom URL schemes (`cursor://`, `vscode:`) may be stripped — click the badges from this README on **GitHub** for the one-click install to fire correctly.
+
+<a id="claude-code"></a>
 <details>
 <summary><b>Claude Code</b> — one command (or commit <code>.mcp.json</code> for your team)</summary>
 
@@ -30,10 +30,11 @@ claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-serv
 For teams: commit a `.mcp.json` at your repo root and every dev gets it automatically. See [team setup](#building-a-team-app-on-the-sdk-drop-this-in-your-repo-root) below.
 </details>
 
+<a id="antigravity"></a>
 <details>
-<summary><b>Claude Desktop</b> — paste JSON into config</summary>
+<summary><b>Antigravity</b> — Agent Panel → ⋯ → MCP Servers → raw config</summary>
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Open Agent Panel → ⋯ menu → MCP Servers → Manage MCP Servers → View raw config. Paste this JSON. Config file: `~/.gemini/antigravity/mcp_config.json` (macOS/Linux).
 
 ```json
 {
@@ -45,32 +46,28 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   }
 }
 ```
-
-Restart Claude Desktop.
-</details>
-
-<details>
-<summary><b>Antigravity</b> — Agent Panel → ⋯ → MCP Servers → raw config</summary>
-
-Open Agent Panel → ⋯ menu → MCP Servers → Manage MCP Servers → View raw config. Paste the same JSON snippet shown for Claude Desktop above. Config file: `~/.gemini/antigravity/mcp_config.json` (macOS/Linux).
 </details>
 
 After installing, restart your client. A `thetanuts` indicator should appear once the server connects (~5 s on first run while npx fetches the package).
 
 ## ⚡ Lazy install — paste this to your agent
 
-Don't want to figure out which install method to use? Paste the prompt below into your AI agent (Claude Code, Claude Desktop, Cursor's agent, Antigravity). It'll detect your client, install the server, verify the connection, and suggest example questions.
+Don't want to figure out which install method to use? Paste the prompt below into your AI agent (Claude Code, Cursor's agent, Antigravity). It'll detect your client, install the server, verify the connection, and suggest example questions.
+
+📦 **Package:** [`@thetanuts-finance/mcp-server`](https://www.npmjs.com/package/@thetanuts-finance/mcp-server) on npm
 
 ````text
-Install the Thetanuts MCP server for me. The package is `@thetanuts-finance/mcp-server` on npm.
+Install the Thetanuts MCP server for me.
+
+Source of truth: https://www.npmjs.com/package/@thetanuts-finance/mcp-server
+Package name: @thetanuts-finance/mcp-server
 
 Pick the right install method for the client you're running in:
 
 - Claude Code: run `claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server`
-- Claude Desktop: add this to `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, or `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
-  {"mcpServers":{"thetanuts":{"command":"npx","args":["-y","@thetanuts-finance/mcp-server"]}}}
 - Cursor / VS Code: tell me to open https://github.com/Shawnchee/thetanuts-mcp-server and click the "Add to Cursor" or "Install in VS Code" badge — that's a one-click install.
-- Antigravity: add the same JSON config to `~/.gemini/antigravity/mcp_config.json`.
+- Antigravity: add this JSON to `~/.gemini/antigravity/mcp_config.json`:
+  {"mcpServers":{"thetanuts":{"command":"npx","args":["-y","@thetanuts-finance/mcp-server"]}}}
 
 After installing:
 1. Tell me if I need to restart the client.
@@ -122,7 +119,7 @@ On first run inside the repo, Claude Code prompts each user to approve the works
 
 ## How to use it
 
-Once the server is connected, just talk to your agent in plain English. The agent picks the right tool from the 67 available based on your request.
+Once the server is connected, just talk to your agent in plain English. The agent picks the right tool from the 79 available based on your request.
 
 ### For traders / researchers (no code needed)
 
@@ -309,13 +306,13 @@ This is the "ground truth while writing code" workflow — the SDK ships in your
 
 **Note:** Encoding tools return transaction data for wallet signing - they do NOT execute transactions.
 
-## Manual installation (Claude Desktop / others)
+## Manual installation (other MCP clients)
 
-If your client isn't covered by [Quick install](#quick-install) above, paste the following JSON into your client's MCP config file. No clone or local build needed — `npx` fetches the package on first run.
+If your client isn't covered by [Install in your MCP client](#install-in-your-mcp-client) above, paste the following JSON into your client's MCP config file. No clone or local build needed — `npx` fetches the package on first run.
 
-### Claude Desktop
+### Antigravity
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+In Antigravity: **Agent Panel** → **⋯** menu → **MCP Servers** → **Manage MCP Servers** → **View raw config**. Config file: `~/.gemini/antigravity/mcp_config.json` (macOS/Linux) or `C:\Users\<you>\.gemini\antigravity\mcp_config.json` (Windows).
 
 ```json
 {
@@ -330,12 +327,6 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   }
 }
 ```
-
-Restart Claude Desktop. A `thetanuts` indicator should appear once the server connects.
-
-### Antigravity
-
-In Antigravity: **Agent Panel** → **⋯** menu → **MCP Servers** → **Manage MCP Servers** → **View raw config**. Paste the same `mcpServers` snippet shown above for Claude Desktop. The config file lives at `~/.gemini/antigravity/mcp_config.json` (macOS/Linux) or `C:\Users\<you>\.gemini\antigravity\mcp_config.json` (Windows).
 
 > Antigravity does not yet support per-workspace `.mcp.json` files (user-global only for now). If your team is on Antigravity, each developer installs once at the user level.
 
@@ -420,7 +411,7 @@ Result: {
 
 | Method | Setup | Config | Auto-updates | When to use |
 |---|---|---|---|---|
-| **`npx -y` (recommended)** | None | `command: "npx", args: ["-y", "@thetanuts-finance/mcp-server"]` | ✅ within `^0.2.x` | Default. What every install path on this README uses. |
+| **`npx -y` (recommended)** | None | `command: "npx", args: ["-y", "@thetanuts-finance/mcp-server"]` | ✅ within `^0.2.3` (≥0.2.3, <0.3.0) | Default. What every install path on this README uses. |
 | `npm i -g` (global) | `npm i -g @thetanuts-finance/mcp-server` | `command: "thetanuts-mcp"` | ❌ manual `npm update -g` | Offline-heavy environments only. |
 | `npm i` (local) | mkdir + npm init + install | absolute path to `node_modules/.bin/thetanuts-mcp` | ❌ manual | Contributors hacking on the server itself. Not for normal use. |
 
