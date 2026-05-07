@@ -19,7 +19,6 @@ A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK t
 
 > Heads-up: on **npmjs.com**, custom URL schemes (`cursor://`, `vscode:`) may be stripped — click the badges from this README on **GitHub** for the one-click install to fire correctly.
 
-<a id="claude-code"></a>
 <details>
 <summary><b>Claude Code</b> — one command (or commit <code>.mcp.json</code> for your team)</summary>
 
@@ -30,7 +29,6 @@ claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-serv
 For teams: commit a `.mcp.json` at your repo root and every dev gets it automatically. See [team setup](#building-a-team-app-on-the-sdk-drop-this-in-your-repo-root) below.
 </details>
 
-<a id="antigravity"></a>
 <details>
 <summary><b>Antigravity</b> — Agent Panel → ⋯ → MCP Servers → raw config</summary>
 
