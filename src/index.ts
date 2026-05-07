@@ -990,6 +990,133 @@ const tools: Tool[] = [
     },
   },
 
+  // === Loan Module ===
+  {
+    name: 'get_lending_opportunities',
+    description: 'Get available lending opportunities (unfilled loan limit orders) with computed APR. Returns array filtered by underlying and excluding the caller\'s own orders.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        underlying: { type: 'string', enum: ['ETH', 'BTC'], description: 'Filter by underlying asset' },
+        excludeAddress: { type: 'string', description: 'Exclude orders from this address (e.g. your own)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_loan_request',
+    description: 'Get on-chain state of a loan (settlement status, deployed option contract, settlement token) by quotation ID',
+    inputSchema: {
+      type: 'object',
+      properties: { quotationId: { type: 'string', description: 'Loan quotation ID' } },
+      required: ['quotationId'],
+    },
+  },
+  {
+    name: 'get_user_loans',
+    description: 'Get all loans (active and historical) for a borrower address from the loan indexer',
+    inputSchema: {
+      type: 'object',
+      properties: { address: { type: 'string', description: 'Borrower wallet address' } },
+      required: ['address'],
+    },
+  },
+  {
+    name: 'get_loan_option_info',
+    description: 'Get detailed info about a deployed loan option contract: buyer, seller, collateral, expiry, strikes, TWAP, delivery amount, exercise window',
+    inputSchema: {
+      type: 'object',
+      properties: { optionAddress: { type: 'string', description: 'Loan option contract address' } },
+      required: ['optionAddress'],
+    },
+  },
+  {
+    name: 'is_loan_option_itm',
+    description: 'Check if a loan option is in-the-money based on current TWAP price',
+    inputSchema: {
+      type: 'object',
+      properties: { optionAddress: { type: 'string', description: 'Loan option contract address' } },
+      required: ['optionAddress'],
+    },
+  },
+  {
+    name: 'get_loan_pricing',
+    description: 'Get raw Deribit-style pricing data for all ETH and BTC loan options (cached 30s)',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'get_loan_strike_options',
+    description: 'Get available loan strike options grouped by expiry. Returns OTM puts only with computed APR and effective borrowing cost.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        underlying: { type: 'string', enum: ['ETH', 'BTC'], description: 'Underlying asset' },
+        minDurationDays: { type: 'number', description: 'Minimum days to expiry (default 7)' },
+        maxStrikes: { type: 'number', description: 'Max strikes per expiry (default 20)' },
+        sortOrder: { type: 'string', enum: ['highestStrike', 'lowestApr'], description: 'Sort order (default highestStrike)' },
+        maxApr: { type: 'number', description: 'Max APR cap percent (default 20)' },
+      },
+      required: ['underlying'],
+    },
+  },
+  {
+    name: 'calculate_loan',
+    description: 'Calculate exact loan costs (option premium, borrowing fee, protocol fee, promo detection) using BigInt arithmetic. Pure calculation, no network calls.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        depositAmount: { type: 'string', description: 'Collateral deposit (e.g. "1.0" ETH)' },
+        underlying: { type: 'string', enum: ['ETH', 'BTC'] },
+        strike: { type: 'number', description: 'Strike price in USD' },
+        expiryTimestamp: { type: 'number', description: 'Expiry as Unix seconds' },
+        askPrice: { type: 'number', description: 'Option ask price (in underlying units, e.g. 0.007)' },
+        underlyingPrice: { type: 'number', description: 'Current underlying price in USD' },
+        maxApr: { type: 'number', description: 'Max APR percent (default 20)' },
+      },
+      required: ['depositAmount', 'underlying', 'strike', 'expiryTimestamp', 'askPrice', 'underlyingPrice'],
+    },
+  },
+  {
+    name: 'encode_request_loan',
+    description: 'Encode a requestLoan transaction (borrower side). Caller must handle WETH wrapping separately if depositing native ETH. Returns {to, data} — does NOT execute.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        underlying: { type: 'string', enum: ['ETH', 'BTC'] },
+        collateralAmount: { type: 'string', description: 'Collateral amount as decimal string (e.g. "1.0")' },
+        strike: { type: 'number', description: 'Strike price in USD' },
+        expiryTimestamp: { type: 'number', description: 'Expiry as Unix seconds' },
+        minSettlementAmount: { type: 'string', description: 'Minimum acceptable USDC (6 decimals, as bigint string)' },
+        offerDurationSeconds: { type: 'number', description: 'Offer window duration (default from LOAN_CONFIG)' },
+        keepOrderOpen: { type: 'boolean', description: 'Convert to limit order if no offers (default false)' },
+      },
+      required: ['underlying', 'collateralAmount', 'strike', 'expiryTimestamp', 'minSettlementAmount'],
+    },
+  },
+  {
+    name: 'encode_loan_accept_offer',
+    description: 'Encode an acceptOffer transaction for a loan (borrower picks a specific market-maker offer before offer-window ends).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        quotationId: { type: 'string' },
+        offerAmount: { type: 'string', description: 'Decrypted offer amount in USDC (6 decimals, bigint string)' },
+        nonce: { type: 'string', description: 'Offer nonce (bigint string)' },
+        offeror: { type: 'string', description: 'Market maker address' },
+      },
+      required: ['quotationId', 'offerAmount', 'nonce', 'offeror'],
+    },
+  },
+  {
+    name: 'encode_loan_cancel',
+    description: 'Encode a cancelLoan transaction (borrower cancels their pending loan request).',
+    inputSchema: {
+      type: 'object',
+      properties: { quotationId: { type: 'string' } },
+      required: ['quotationId'],
+    },
+  },
+
   // === RFQ Transaction Encoding ===
   {
     name: 'encode_request_for_quotation',
@@ -2575,6 +2702,145 @@ async function handleTool(name: string, args: Record<string, unknown>): Promise<
             premium: premium.toString(),
             price: price.toString(),
           },
+        }, null, 2);
+      }
+
+      // === Loan Module ===
+      case 'get_lending_opportunities': {
+        const opts: { underlying?: 'ETH' | 'BTC'; excludeAddress?: string } = {};
+        if (args.underlying) opts.underlying = args.underlying as 'ETH' | 'BTC';
+        if (args.excludeAddress) opts.excludeAddress = args.excludeAddress as string;
+        const opportunities = await c.loan.getLendingOpportunities(opts);
+        return JSON.stringify({
+          count: opportunities.length,
+          opportunities: opportunities.map(o => ({
+            quotationId: o.quotationId,
+            requester: o.requester,
+            underlying: o.underlying,
+            collateralFormatted: o.collateralFormatted,
+            lendAmountFormatted: o.lendAmountFormatted,
+            lendAmount: o.lendAmount.toString(),
+            strike: o.strike,
+            expiryTimestamp: o.expiryTimestamp,
+            expiryFormatted: o.expiryFormatted,
+            apr: o.apr,
+            aprFormatted: o.aprFormatted,
+          })),
+        }, null, 2);
+      }
+      case 'get_loan_request': {
+        const quotationId = BigInt(args.quotationId as string);
+        const state = await c.loan.getLoanRequest(quotationId);
+        return JSON.stringify({
+          quotationId: quotationId.toString(),
+          requester: state.requester,
+          collateralAmount: state.collateralAmount.toString(),
+          strike: state.strike.toString(),
+          expiryTimestamp: state.expiryTimestamp,
+          collateralToken: state.collateralToken,
+          settlementToken: state.settlementToken,
+          isSettled: state.isSettled,
+          settledOptionContract: state.settledOptionContract,
+        }, null, 2);
+      }
+      case 'get_user_loans': {
+        const address = args.address as string;
+        const loans = await c.loan.getUserLoans(address);
+        return JSON.stringify({ count: loans.length, loans }, null, 2);
+      }
+      case 'get_loan_option_info': {
+        const info = await c.loan.getOptionInfo(args.optionAddress as string);
+        return JSON.stringify({
+          buyer: info.buyer,
+          seller: info.seller,
+          collateralToken: info.collateralToken,
+          collateralAmount: info.collateralAmount.toString(),
+          expiryTimestamp: info.expiryTimestamp,
+          strikes: info.strikes,
+          isSettled: info.isSettled,
+          twap: info.twap,
+          deliveryAmount: info.deliveryAmount.toString(),
+          exerciseWindow: info.exerciseWindow,
+        }, null, 2);
+      }
+      case 'is_loan_option_itm': {
+        const itm = await c.loan.isOptionITM(args.optionAddress as string);
+        return JSON.stringify({ optionAddress: args.optionAddress, isITM: itm }, null, 2);
+      }
+      case 'get_loan_pricing': {
+        const pricing = await c.loan.fetchPricing();
+        return JSON.stringify(pricing, null, 2);
+      }
+      case 'get_loan_strike_options': {
+        const settings: Record<string, unknown> = {};
+        if (args.minDurationDays !== undefined) settings.minDurationDays = args.minDurationDays;
+        if (args.maxStrikes !== undefined) settings.maxStrikes = args.maxStrikes;
+        if (args.sortOrder !== undefined) settings.sortOrder = args.sortOrder;
+        if (args.maxApr !== undefined) settings.maxApr = args.maxApr;
+        const groups = await c.loan.getStrikeOptions(args.underlying as 'ETH' | 'BTC', settings as any);
+        return JSON.stringify({ groupCount: groups.length, groups }, null, 2);
+      }
+      case 'calculate_loan': {
+        const calc = c.loan.calculateLoan({
+          depositAmount: args.depositAmount as string,
+          underlying: args.underlying as 'ETH' | 'BTC',
+          strike: args.strike as number,
+          expiryTimestamp: args.expiryTimestamp as number,
+          askPrice: args.askPrice as number,
+          underlyingPrice: args.underlyingPrice as number,
+          maxApr: args.maxApr as number | undefined,
+        });
+        if (!calc) return JSON.stringify({ error: 'Invalid loan parameters or non-positive net loan amount' }, null, 2);
+        return JSON.stringify({
+          owe: calc.owe.toString(),
+          optionCost: calc.optionCost.toString(),
+          capitalCost: calc.capitalCost.toString(),
+          protocolFee: calc.protocolFee.toString(),
+          totalCosts: calc.totalCosts.toString(),
+          finalLoanAmount: calc.finalLoanAmount.toString(),
+          effectiveApr: calc.effectiveApr,
+          isPromo: calc.isPromo,
+          formatted: calc.formatted,
+        }, null, 2);
+      }
+      case 'encode_request_loan': {
+        const encoded = c.loan.encodeRequestLoan({
+          underlying: args.underlying as 'ETH' | 'BTC',
+          collateralAmount: args.collateralAmount as string,
+          strike: args.strike as number,
+          expiryTimestamp: args.expiryTimestamp as number,
+          minSettlementAmount: BigInt(args.minSettlementAmount as string),
+          offerDurationSeconds: args.offerDurationSeconds as number | undefined,
+          keepOrderOpen: args.keepOrderOpen as boolean | undefined,
+        });
+        return JSON.stringify({
+          to: encoded.to,
+          data: encoded.data,
+          description: `Request ${args.underlying} loan, strike ${args.strike}, expiry ${new Date((args.expiryTimestamp as number) * 1000).toISOString()}`,
+          usage: 'Wrap native ETH→WETH first if needed, approve collateral to LoanCoordinator, then send this transaction',
+        }, null, 2);
+      }
+      case 'encode_loan_accept_offer': {
+        const encoded = c.loan.encodeAcceptOffer(
+          BigInt(args.quotationId as string),
+          BigInt(args.offerAmount as string),
+          BigInt(args.nonce as string),
+          args.offeror as string,
+        );
+        return JSON.stringify({
+          to: encoded.to,
+          data: encoded.data,
+          description: `Accept loan offer for quotation ${args.quotationId} from ${args.offeror}`,
+          usage: 'Send this transaction to settle the loan against the chosen offer',
+        }, null, 2);
+      }
+      case 'encode_loan_cancel': {
+        const encoded = c.loan.encodeCancelLoan(BigInt(args.quotationId as string));
+        return JSON.stringify({
+          to: encoded.to,
+          data: encoded.data,
+          description: `Cancel loan quotation ${args.quotationId}`,
+          usage: 'Send this transaction to cancel your pending loan (borrower only)',
         }, null, 2);
       }
 

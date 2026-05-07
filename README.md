@@ -1,6 +1,12 @@
 # Thetanuts MCP Server
 
-A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK to Claude Desktop, Claude Code, Cursor, and any other MCP-compatible client.
+[![npm version](https://img.shields.io/npm/v/@thetanuts-finance/mcp-server.svg?style=flat-square)](https://www.npmjs.com/package/@thetanuts-finance/mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/@thetanuts-finance/mcp-server.svg?style=flat-square)](https://www.npmjs.com/package/@thetanuts-finance/mcp-server)
+[![License: MIT](https://img.shields.io/npm/l/@thetanuts-finance/mcp-server.svg?style=flat-square)](./LICENSE)
+[![Thetanuts SDK](https://img.shields.io/npm/v/@thetanuts-finance/thetanuts-client.svg?style=flat-square&label=SDK)](https://www.npmjs.com/package/@thetanuts-finance/thetanuts-client)
+[![GitHub](https://img.shields.io/badge/source-GitHub-181717?style=flat-square&logo=github)](https://github.com/Shawnchee/thetanuts-mcp-server)
+
+A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK to Claude Desktop, Claude Code, Cursor, Antigravity, and any other MCP-compatible client.
 
 ## Who this is for
 
@@ -28,14 +34,79 @@ One-click install for the most common MCP clients. Each pre-fills the config —
 
 | Client | Action |
 |---|---|
-| **Cursor** | [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBzaGF3bmNoZWUvdGhldGFudXRzLW1jcC1zZXJ2ZXIiXX0%3D) |
-| **VS Code** | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:mcp/install?%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40shawnchee%2Fthetanuts-mcp-server%22%5D%7D) |
-| **Claude Code** | `claude mcp add thetanuts -- npx -y @shawnchee/thetanuts-mcp-server` |
+| **Cursor** | [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19) |
+| **VS Code** | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:mcp/install?%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40thetanuts-finance%2Fmcp-server%22%5D%7D) |
+| **Claude Code** | `claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server` |
+| **Antigravity** | Agent Panel → ⋯ → MCP Servers → Manage MCP Servers → Edit configuration. Paste the [JSON snippet](#manual-installation-claude-desktop--others) below. |
 | **Claude Desktop / Cline / Continue / others** | See the [manual JSON snippet](#manual-installation-claude-desktop--others) below. |
 
 After installing, restart your client. A `thetanuts` indicator should appear once the server connects (~5 seconds on first run while npx fetches the package).
 
-### Available Tools
+### Building a team app on the SDK? Drop this in your repo root
+
+If you're a team building on `@thetanuts-finance/thetanuts-client`, commit a `.mcp.json` at the root of your project. Every teammate using **Claude Code** in the repo gets the MCP server automatically — no per-developer setup, no instructions to forward.
+
+```json
+{
+  "mcpServers": {
+    "thetanuts": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@thetanuts-finance/mcp-server"]
+    }
+  }
+}
+```
+
+On first run inside the repo, Claude Code prompts each user to approve the workspace's MCP servers; after that, it loads automatically. This is the recommended setup for builders shipping on the SDK.
+
+## How to use it
+
+Once the server is connected, just talk to your agent in plain English. The agent picks the right tool from the 67 available based on your request.
+
+### For traders / researchers (no code needed)
+
+> *"What's the current ETH price?"*
+> → agent calls `get_market_data`, returns live Base mainnet price.
+
+> *"Show me all ETH calls expiring in February with MM-adjusted prices."*
+> → agent chains `filter_orders` + `get_mm_ticker_pricing`, returns a table.
+
+> *"My address is 0xabc… — what option positions do I have?"*
+> → agent calls `get_user_positions`, returns your live book.
+
+> *"Encode a settlement transaction for RFQ 744. I'll sign it in MetaMask."*
+> → agent calls `encode_settle_quotation`, returns `{to, data}`. Paste into your wallet.
+
+> *"What lending opportunities are there for ETH right now?"*
+> → agent calls `get_lending_opportunities`, returns unfilled limit orders with computed APR.
+
+### For builders shipping on the SDK
+
+The MCP server is your **dev-time companion** — it doesn't replace the SDK in your app's runtime. The pattern:
+
+```bash
+# In your app's repo (runtime dependency — actually ships with your app)
+npm i @thetanuts-finance/thetanuts-client
+
+# In your IDE (dev-time helper — agent uses live tools while you code)
+# Cursor:    click the badge above
+# Claude Code: claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server
+# Or commit .mcp.json to your repo (see "team app" section above)
+```
+
+Then while coding in Cursor / Claude Code, ask things like:
+
+> *"Write me a function that takes a strike + expiry and submits an RFQ for an ETH put. Use the SDK. Verify the calldata it produces matches `encode_request_for_quotation` from the MCP server."*
+
+The agent will:
+1. Call MCP tools (`get_market_data`, `build_rfq_request`, `encode_request_for_quotation`) to see *real* return shapes from live mainnet.
+2. Write SDK code in your app that imports from `@thetanuts-finance/thetanuts-client`.
+3. Compare the SDK call's encoded output against the MCP's reference `{to, data}` to catch param mismatches *before* you sign anything.
+
+This is the "ground truth while writing code" workflow — the SDK ships in your app, the MCP ships nowhere.
+
+## Available Tools
 
 #### Indexer API Tools (OptionBook data)
 | Tool | Description |
@@ -113,6 +184,21 @@ After installing, restart your client. A `thetanuts` indicator should appear onc
 | `build_physical_option_rfq` | Build RFQ request for physical-settled vanilla PUT or CALL |
 | `encode_request_for_quotation` | Encode RFQ creation transaction from built request parameters |
 
+#### Loan Module (non-liquidatable lending)
+| Tool | Description |
+|------|-------------|
+| `get_lending_opportunities` | Available lending opportunities with computed APR (lender-side discovery) |
+| `get_loan_request` | On-chain state of a loan by quotation ID |
+| `get_user_loans` | All loans (active + historical) for a borrower address |
+| `get_loan_option_info` | Detailed info about a deployed loan option contract |
+| `is_loan_option_itm` | Check if a loan option is ITM at current TWAP |
+| `get_loan_pricing` | Raw Deribit-style pricing for ETH/BTC loan options (cached 30s) |
+| `get_loan_strike_options` | Available strike options grouped by expiry, with APR and effective borrowing cost |
+| `calculate_loan` | Pure-calc loan costs (option premium, borrowing fee, protocol fee, promo detection) |
+| `encode_request_loan` | Encode `requestLoan` transaction (borrower side) — returns `{to, data}` |
+| `encode_loan_accept_offer` | Encode `acceptOffer` transaction (borrower picks an MM offer early) |
+| `encode_loan_cancel` | Encode `cancelLoan` transaction (borrower cancels pending request) |
+
 #### Calculation Tools
 | Tool | Description |
 |------|-------------|
@@ -167,8 +253,6 @@ After installing, restart your client. A `thetanuts` indicator should appear onc
 
 If your client isn't covered by [Quick install](#quick-install) above, paste the following JSON into your client's MCP config file. No clone or local build needed — `npx` fetches the package on first run.
 
-> **Note:** This is a community build published as `@shawnchee/thetanuts-mcp-server`. An official `@thetanuts-finance/mcp-server` may supersede it in the future.
-
 ### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
@@ -178,7 +262,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "thetanuts": {
       "command": "npx",
-      "args": ["-y", "@shawnchee/thetanuts-mcp-server"],
+      "args": ["-y", "@thetanuts-finance/mcp-server"],
       "env": {
         "THETANUTS_RPC_URL": "https://mainnet.base.org"
       }
@@ -188,6 +272,12 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop. A `thetanuts` indicator should appear once the server connects.
+
+### Antigravity
+
+In Antigravity: **Agent Panel** → **⋯** menu → **MCP Servers** → **Manage MCP Servers** → **View raw config**. Paste the same `mcpServers` snippet shown above for Claude Desktop. The config file lives at `~/.gemini/antigravity/mcp_config.json` (macOS/Linux) or `C:\Users\<you>\.gemini\antigravity\mcp_config.json` (Windows).
+
+> Antigravity does not yet support per-workspace `.mcp.json` files (user-global only for now). If your team is on Antigravity, each developer installs once at the user level.
 
 ### Cline / Continue / other MCP clients
 
@@ -265,6 +355,13 @@ Result: {
 ```
 
 **Note:** Use the returned `to` and `data` with your wallet to sign and send the transaction.
+
+## Related
+
+- **[Thetanuts SDK on npm](https://www.npmjs.com/package/@thetanuts-finance/thetanuts-client)** — install in your app's repo to actually ship code that calls Thetanuts.
+- **[Thetanuts SDK on GitHub](https://github.com/Thetanuts-Finance/thetanuts-sdk)** — source, examples, deeper docs.
+- **[Model Context Protocol](https://modelcontextprotocol.io/)** — the open standard this server implements.
+- **[This server on GitHub](https://github.com/Shawnchee/thetanuts-mcp-server)** — issues, PRs, contributions welcome.
 
 ## License
 
