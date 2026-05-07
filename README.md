@@ -1,12 +1,86 @@
 # Thetanuts MCP Server
 
 [![npm version](https://img.shields.io/npm/v/@thetanuts-finance/mcp-server.svg?style=flat-square)](https://www.npmjs.com/package/@thetanuts-finance/mcp-server)
-[![npm downloads](https://img.shields.io/npm/dm/@thetanuts-finance/mcp-server.svg?style=flat-square)](https://www.npmjs.com/package/@thetanuts-finance/mcp-server)
-[![License: MIT](https://img.shields.io/npm/l/@thetanuts-finance/mcp-server.svg?style=flat-square)](./LICENSE)
+[![npm downloads](https://img.shields.io/npm/dt/@thetanuts-finance/mcp-server.svg?style=flat-square&label=downloads)](https://www.npmjs.com/package/@thetanuts-finance/mcp-server)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](./LICENSE)
 [![Thetanuts SDK](https://img.shields.io/npm/v/@thetanuts-finance/thetanuts-client.svg?style=flat-square&label=SDK)](https://www.npmjs.com/package/@thetanuts-finance/thetanuts-client)
 [![GitHub](https://img.shields.io/badge/source-GitHub-181717?style=flat-square&logo=github)](https://github.com/Shawnchee/thetanuts-mcp-server)
 
 A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK to Claude Desktop, Claude Code, Cursor, Antigravity, and any other MCP-compatible client.
+
+> ⚠️ **Don't `npm i` this.** The sidebar's `npm i @thetanuts-finance/mcp-server` snippet is misleading — this package is meant to be **spawned by your MCP client via `npx`**, not imported as a library. Use one of the install paths below. (Why? See [Install methods compared](#install-methods-compared) at the bottom.)
+
+## Install in your MCP client
+
+[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white)](cursor://anysphere.cursor-deeplink/mcp/install?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19)
+[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](vscode:mcp/install?%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40thetanuts-finance%2Fmcp-server%22%5D%7D)
+![Add to Claude Code](https://img.shields.io/badge/Add_to-Claude_Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
+![Add to Claude Desktop](https://img.shields.io/badge/Add_to-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
+![Add to Antigravity](https://img.shields.io/badge/Add_to-Antigravity-4285F4?style=for-the-badge&logo=google&logoColor=white)
+
+**Cursor** and **VS Code** install with one click via the badges above. The other clients need a single command or JSON paste — expand the rows below.
+
+<details>
+<summary><b>Claude Code</b> — one command (or commit <code>.mcp.json</code> for your team)</summary>
+
+```bash
+claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server
+```
+
+For teams: commit a `.mcp.json` at your repo root and every dev gets it automatically. See [team setup](#building-a-team-app-on-the-sdk-drop-this-in-your-repo-root) below.
+</details>
+
+<details>
+<summary><b>Claude Desktop</b> — paste JSON into config</summary>
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "thetanuts": {
+      "command": "npx",
+      "args": ["-y", "@thetanuts-finance/mcp-server"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop.
+</details>
+
+<details>
+<summary><b>Antigravity</b> — Agent Panel → ⋯ → MCP Servers → raw config</summary>
+
+Open Agent Panel → ⋯ menu → MCP Servers → Manage MCP Servers → View raw config. Paste the same JSON snippet shown for Claude Desktop above. Config file: `~/.gemini/antigravity/mcp_config.json` (macOS/Linux).
+</details>
+
+After installing, restart your client. A `thetanuts` indicator should appear once the server connects (~5 s on first run while npx fetches the package).
+
+## ⚡ Lazy install — paste this to your agent
+
+Don't want to figure out which install method to use? Paste the prompt below into your AI agent (Claude Code, Claude Desktop, Cursor's agent, Antigravity). It'll detect your client, install the server, verify the connection, and suggest example questions.
+
+````text
+Install the Thetanuts MCP server for me. The package is `@thetanuts-finance/mcp-server` on npm.
+
+Pick the right install method for the client you're running in:
+
+- Claude Code: run `claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server`
+- Claude Desktop: add this to `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, or `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
+  {"mcpServers":{"thetanuts":{"command":"npx","args":["-y","@thetanuts-finance/mcp-server"]}}}
+- Cursor / VS Code: tell me to open https://github.com/Shawnchee/thetanuts-mcp-server and click the "Add to Cursor" or "Install in VS Code" badge — that's a one-click install.
+- Antigravity: add the same JSON config to `~/.gemini/antigravity/mcp_config.json`.
+
+After installing:
+1. Tell me if I need to restart the client.
+2. Verify the server is reachable by calling the `get_market_data` tool. Confirm live BTC and ETH prices come back.
+3. Give me a 1-line summary of what I can now do, plus 3 example questions to try (covering market data, position queries, and RFQ encoding).
+
+Don't ask me for my wallet address or any keys — this server is read-only and doesn't sign anything.
+````
+
+> The agent won't be able to install the server *into the same session it's running in* without a restart. Expect it to install, then ask you to restart the client. After restart, it'll have the new tools live.
 
 ## Who this is for
 
@@ -27,20 +101,6 @@ This server **never holds private keys, never signs, never submits transactions*
 - Encodes transaction calldata for your wallet to sign
 
 State-changing actions are intentionally outside its scope.
-
-## Quick install
-
-One-click install for the most common MCP clients. Each pre-fills the config — no JSON editing required.
-
-| Client | Action |
-|---|---|
-| **Cursor** | [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19) |
-| **VS Code** | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:mcp/install?%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40thetanuts-finance%2Fmcp-server%22%5D%7D) |
-| **Claude Code** | `claude mcp add --transport stdio thetanuts -- npx -y @thetanuts-finance/mcp-server` |
-| **Antigravity** | Agent Panel → ⋯ → MCP Servers → Manage MCP Servers → Edit configuration. Paste the [JSON snippet](#manual-installation-claude-desktop--others) below. |
-| **Claude Desktop / Cline / Continue / others** | See the [manual JSON snippet](#manual-installation-claude-desktop--others) below. |
-
-After installing, restart your client. A `thetanuts` indicator should appear once the server connects (~5 seconds on first run while npx fetches the package).
 
 ### Building a team app on the SDK? Drop this in your repo root
 
@@ -355,6 +415,16 @@ Result: {
 ```
 
 **Note:** Use the returned `to` and `data` with your wallet to sign and send the transaction.
+
+## Install methods compared
+
+| Method | Setup | Config | Auto-updates | When to use |
+|---|---|---|---|---|
+| **`npx -y` (recommended)** | None | `command: "npx", args: ["-y", "@thetanuts-finance/mcp-server"]` | ✅ within `^0.2.x` | Default. What every install path on this README uses. |
+| `npm i -g` (global) | `npm i -g @thetanuts-finance/mcp-server` | `command: "thetanuts-mcp"` | ❌ manual `npm update -g` | Offline-heavy environments only. |
+| `npm i` (local) | mkdir + npm init + install | absolute path to `node_modules/.bin/thetanuts-mcp` | ❌ manual | Contributors hacking on the server itself. Not for normal use. |
+
+**TL;DR:** ignore the `npm i ...` snippet npm shows in its sidebar. It's a default that doesn't apply to MCP servers. Use `npx`.
 
 ## Related
 
