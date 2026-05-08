@@ -12,7 +12,7 @@ A read-only MCP (Model Context Protocol) server that exposes the Thetanuts SDK t
 
 ## Install in your MCP client
 
-[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white)](https://cursor.com/install-mcp?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19)
+[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white)](https://cursor.com/en/install-mcp?name=thetanuts&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0aGV0YW51dHMtZmluYW5jZS9tY3Atc2VydmVyIl19)
 [![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%7B%22name%22%3A%22thetanuts%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40thetanuts-finance%2Fmcp-server%22%5D%7D)
 
 **Cursor** and **VS Code** support one-click installation; click either badge to register the server with the IDE. The badges link to the vendor's HTTPS deep-link redirector, which then hands off to the IDE. Other clients require a single command or JSON snippet, documented below.
